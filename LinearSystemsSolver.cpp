@@ -1,7 +1,7 @@
 #include <iostream>
-
+using namespace std;
 int main()
 {
-    std::cout << "Hello World!" << std::endl;
+    cout << "Parallel Computing Linear Systems of Equations Solver" << endl;
     return 0;
 }
