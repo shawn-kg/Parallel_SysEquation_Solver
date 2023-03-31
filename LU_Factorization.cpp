@@ -4,7 +4,7 @@
 
 void LU(double** matrix, double ** L, double ** U, double ** P, int dimension)
 {
-	//make sure that L = I and U = matrix
+	//make sure that P,L = I and U = matrix
 	for (int r = 0; r < dimension; r++)
 	{
 		for (int c = 0; c < dimension; c++)
