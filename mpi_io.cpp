@@ -108,7 +108,11 @@ int main(int argc, char** argv)
         double** L = new double*[num_rows];
         double** U = new double*[num_rows];
         double** P = new double*[num_rows];
-        LU(matrix);
+        LU(matrix,L,U,P);
+        write(vector<vector<double>> matrix, int num_rows, int num_cols,MPI_File fh, int num_ranks,int num_doubles,int size);
+        write(vector<vector<double>> matrix, int num_rows, int num_cols,MPI_File fh, int num_ranks,int num_doubles,int size);
+        write(vector<vector<double>> matrix, int num_rows, int num_cols,MPI_File fh, int num_ranks,int num_doubles,int size);
+
     }
 
     
