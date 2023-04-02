@@ -205,7 +205,7 @@ int main()
 		ans[i] = new double[3];
 	}
 	
-	matrixMult(P, A, C, 3);
+	matrixMult(P, matrix, C, 3);
 
 	matrixMult(L, U, ans, 3);
 
