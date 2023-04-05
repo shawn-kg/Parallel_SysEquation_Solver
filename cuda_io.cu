@@ -8,7 +8,7 @@ void flatten(double** matrix, double* flattened_matrix,int num_rows,int num_cols
     {
         for(int j = index; j < num_cols; j+=stride)
         {
-            flattened_matrix[i*j+j] = matrix[i][j];
+            flattened_matrix[i*num_cols+j] = matrix[i][j];
         }
     }
 }
@@ -22,7 +22,7 @@ void unflatten(double** matrix, double* flattened_matrix,int num_rows,int num_co
     {
         for(int j = index; j < num_cols; j+=stride)
         {
-            matrix[i][j] = flattened_matrix[i*j+j]
+            matrix[i][j] = flattened_matrix[i*num_cols+j]
         }
     }
 }
