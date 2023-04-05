@@ -26,3 +26,6 @@ void unflatten(double** matrix, double* flattened_matrix,int num_rows,int num_co
         }
     }
 }
+
+__global__
+void generateSDD()
