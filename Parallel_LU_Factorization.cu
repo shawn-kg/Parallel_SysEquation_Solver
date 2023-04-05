@@ -21,7 +21,7 @@ __global__ void check_matrix_equivalence(double **A, double **B, int dimension, 
   for (int r = index; r < dimension; r += stride) {
     for (int c = 0; c < dimension; c++) {
       if (fabs(A[r][c] - B[r][c]) > 0.0001) {
-        printf("A[%d][%d] = %f, B[%d][%d] = %f");
+        printf("A[%d][%d] = %f, B[%d][%d] = %f",r,c,A[r][c],r,c,B[r][c]);
         *equal = false;
         return;
       }
