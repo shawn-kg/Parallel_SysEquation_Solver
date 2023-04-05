@@ -1,3 +1,22 @@
+/**
+ * @file cuda_sdd.cu
+ * @author Shawn George
+ * @author Adelin Owona
+ * @author Michael Lenyszn
+ * @author Miles Corn
+ * @brief This file develops a CUDA program to 
+    generate a strictly diagonally dominant matrix of size n
+ * @version 0.1
+ * @date 2023-04-05
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
+
+
+
+
+
 #include <iostream>
 #include <vector>
 #include <random>
@@ -45,7 +64,7 @@ __global__ void makeStrictlyDiagonallyDominant(double* A, int n) {
 }
 
 // Function to generate a strictly diagonally dominant matrix of size n using CUDA
-vector<vector<double>> generateSDD_CUDA(int n) {
+void generateSDD_CUDA(int n, double **A) {
     // Allocate memory on device
     double* d_A;
     cudaMalloc(&d_A, n*n*sizeof(double));
@@ -56,21 +75,19 @@ vector<vector<double>> generateSDD_CUDA(int n) {
     // Make the matrix strictly diagonally dominant on device
     makeStrictlyDiagonallyDominant<<<(n+511)/512, 512>>>(d_A, n);
     // Copy matrix from device to host
-    vector<vector<double>> A(n, vector<double>(n));
-    cudaMemcpy(A.data(), d_A, n*n*sizeof(double), cudaMemcpyDeviceToHost);
+    cudaMemcpy(A, d_A, n*n*sizeof(double), cudaMemcpyDeviceToHost);
     // Free memory on device
     cudaFree(d_A);
-    return A;
 }
 
-int main() {
-    // Generate a random 5x5 strictly diagonally dominant matrix using CUDA and print it
-    vector<vector<double>> A = generateSDD_CUDA(5);
-    for (int i = 0; i < 5; i++) {
-        for (int j = 0; j < 5; j++) {
-            cout << A[i][j] << " ";
-        }
-        cout << endl;
-    }
-    return 0;
-}
+// int main() {
+//     // Generate a random 5x5 strictly diagonally dominant matrix using CUDA and print it
+//     vector<vector<double>> A = generateSDD_CUDA(5);
+//     for (int i = 0; i < 5; i++) {
+//         for (int j = 0; j < 5; j++) {
+//             cout << A[i][j] << " ";
+//         }
+//         cout << endl;
+//     }
+//     return 0;
+// }

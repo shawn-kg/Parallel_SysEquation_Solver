@@ -1,3 +1,47 @@
+/**
+ * @file Parallel_LU_Factorization.cu
+ * @author Shawn George
+ * @author Adelin Owona
+ * @author Michael Lenyszn
+ * @author Miles Corn
+ * @brief This file performs LU factorization on a matrix using partial pivoting in parallel
+ * @version 0.1
+ * @date 2023-04-05
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
+
+
+__global__ void check_matrix_equivalence(double **A, double **B, int dimension, bool *equal) {
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  int stride = blockDim.x * gridDim.x;
+  *equal = true;
+  
+  for (int r = index; r < dimension; r += stride) {
+    for (int c = 0; c < dimension; c++) {
+      if (fabs(A[r][c] - B[r][c]) > 0.0001) {
+        printf("A[%d][%d] = %f, B[%d][%d] = %f");
+        *equal = false;
+        return;
+      }
+    }
+  }
+}
+
+__global__ void matrix_mult(double **A, double **B, double **C, int dimension) {
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  int stride = blockDim.x * gridDim.x;
+  for (int r = index; r < dimension; r += stride) {
+    for (int c = 0; c < dimension; c++) {
+      C[r][c] = 0;
+      for (int k = 0; k < dimension; k++) {
+        C[r][c] += A[r][k] * B[k][c];
+      }
+    }
+  }
+}
+
 __global__ void swap_rows_U(int row, int max_index, int col, int dimension,
                             double** U) {
   double rowholder;
@@ -40,7 +84,10 @@ __global__ void row_ops_kernel(int col, int dimension, double** L, double** U) {
   for (int r = col + 1 + index; r < dimension; r += stride) {
     L[r][col] = U[r][col] / U[col][col];
 
-    for (int k = col; k < dimension; k++) {
+    __syncthreads(); // make sure all threads have computed L[r][col]
+
+    // distribute this loop across the y-dimension of the threadblock
+    for (int k = col + threadIdx.y; k < dimension; k += blockDim.y) {
       U[r][k] = U[r][k] - L[r][col] * U[col][k];
     }
   }

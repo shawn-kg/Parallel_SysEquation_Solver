@@ -1,3 +1,22 @@
+/**
+ * @file Serial_LU_Factorization.cpp
+ * @author Shawn George
+ * @author Adelin Owona
+ * @author Michael Lenyszn
+ * @author Miles Corn
+ * @brief This file performs the LU factorization of a matrix with partial pivoting in serial
+ * @version 0.1
+ * @date 2023-04-05
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
+
+
+
+
+
+
 #include <math.h>
 #include <cstdlib>
 #include <stdio.h>
@@ -209,7 +228,7 @@ int main()
 
 	matrixMult(L, U, ans, 3);
 
-	bool sameMatrix = checkAnswer(matrix, ans, 3);
+	bool sameMatrix = checkAnswer(C, ans, 3);
 
 	cout << "Matrix: " << endl;
 	for (int i=0; i<3; i++)

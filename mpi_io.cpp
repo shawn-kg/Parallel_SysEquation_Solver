@@ -1,3 +1,15 @@
+/**
+ * @file mpi_io.cpp
+ * @author Michael Lenyszn
+ * @brief This file performs parallel io operations for the input and output matrices using MPI
+ * @version 0.1
+ * @date 2023-04-05
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
+
+
 #include <mpi.h>
 #include <vector>
 #include <random>
@@ -5,6 +17,15 @@
 #include <algorithm>
 #include <string>
 using namespace std;
+
+/*
+This file is handles all the parallel io operations for the input and
+output matrices. It is also the starting point from the program.
+*/
+
+
+
+
 
 // Function to generate a strictly diagonally dominant matrix of size n
 void generateSDD(double** A, int n) {
@@ -176,33 +197,29 @@ int main(int argc, char** argv)
     int num_rows = stoi(argv[2],nullptr,10);
     int num_cols =  stoi(argv[3],nullptr,10);
     MPI_File_get_size(fh,&size);
-    // cout << "szie was " << (unsigned int)size << endl;
     //read in matrix from file
     if(rank != 0)
     {
         int num_doubles = size/sizeof(double);
         int double_per_rank = num_doubles/num_ranks;
-        // cout << "m\n";
         double* buf = new double[double_per_rank];
-        // cout << "n\n";
-        MPI_File_read_all(fh,buf,double_per_rank,MPI_DOUBLE,&status);//fix offset
-        // cout << "v\n";
+        MPI_File_read_at_all(fh,rank*double_per_rank,buf,double_per_rank,MPI_DOUBLE,&status);//fix offset
+        
         MPI_Send(buf,double_per_rank,MPI_DOUBLE,0,0,MPI_COMM_WORLD);
-        // cout << "vv\n";
         MPI_Barrier(MPI_COMM_WORLD);
+        write(nullptr,num_rows,num_cols,fh,num_ranks,num_doubles,size);
+        delete buf;
     }
     else
     {
         double** matrix = new double*[num_rows];
         for(int i = 0; i < num_rows; ++i)
             matrix[i] = new double[num_cols];
-        // matrix[0][0] = 0;
-        // cout << "hmm\n";
         int num_doubles = size/sizeof(double);
         double* flattened_matrix = new double[num_rows*num_cols];
         
         int double_per_rank = num_doubles/num_ranks;
-        MPI_File_read_all(fh,flattened_matrix,double_per_rank,MPI_DOUBLE, &status);//fix offsets
+        MPI_File_read_at_all(fh,rank*double_per_rank,flattened_matrix,double_per_rank,MPI_DOUBLE, &status);//fix offsets
         for(int i = 1; i < num_ranks;++i)
         {
             MPI_Recv(flattened_matrix+i*double_per_rank,double_per_rank,MPI_DOUBLE,i,0,
@@ -218,17 +235,24 @@ int main(int argc, char** argv)
                 cout << matrix[i][j] << " ";
             cout << "\n";
         }
-        MPI_Barrier(MPI_COMM_WORLD);
+        
         
         // double** L = new double*[num_rows];
         // double** U = new double*[num_rows];
         // double** P = new double*[num_rows];
         // LU(matrix,L,U,P);
-        // write(vector<vector<double>> matrix, int num_rows, int num_cols,MPI_File fh, int num_ranks,int num_doubles,int size);
-        // write(vector<vector<double>> matrix, int num_rows, int num_cols,MPI_File fh, int num_ranks,int num_doubles,int size);
-        // write(vector<vector<double>> matrix, int num_rows, int num_cols,MPI_File fh, int num_ranks,int num_doubles,int size);
+        
+        
 
-
+        MPI_Barrier(MPI_COMM_WORLD);
+        // write(matrix,num_rows,num_cols,fh,num_ranks,num_doubles,size);
+        // write(vector<vector<double>> matrix, int num_rows, int num_cols,MPI_File fh, int num_ranks,int num_doubles,int size);
+        // write(vector<vector<double>> matrix, int num_rows, int num_cols,MPI_File fh, int num_ranks,int num_doubles,int size);
+        
+        for(int i = 0; i < num_rows; ++i)
+            delete matrix[i];
+        delete matrix;
+        delete flattened_matrix;
 
     }
     MPI_Finalize();
