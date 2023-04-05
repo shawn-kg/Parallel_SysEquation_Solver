@@ -1,7 +1,7 @@
 
 
 __global__
-void swap_rows_U(int row, int max_index, int col, double** U)
+void swap_rows_U(int row, int max_index, int col, int dimension, double** U)
 {
     double rowholder;
     int index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -45,22 +45,20 @@ void swap_rows_P(int row, int max_index, int dimension, double** P)
     }
 }
 
-__global__
-void row_ops_kernel(double ** L, double ** U, int c, int dimension)
-{
-    int row = blockIdx.x * blockDim.x + threadIdx.x;
+__global__ void row_ops_kernel(int col, int dimension, double** L,
+                                          double** U) {
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
 
-    if (row > c && row < dimension){
-        L[row][c]			= U[row][c] / U[c][c];
-        for (int k = c; k < dimension; k++)
-        {
-            U[row][k]		= U[row][k] - L[row][c]*U[c][k];
-        }
-    }	
+    for (int r = col + 1 + index; r < dimension; r += stride) {
+
+				L[r][col] = U[r][col] / U[col][col];
+
+				for (int k = col; k < dimension; k++) {
+					U[r][k] = U[r][k] - L[r][col] * U[col][k];
+				}
+    }
 }
-
-
-
 
 void LU(double** matrix, double ** L, double ** U, double ** P, int dimension)
 {
@@ -101,7 +99,7 @@ void LU(double** matrix, double ** L, double ** U, double ** P, int dimension)
 
         swap_rows_L<<<2048,2048>>>(c, max_index, c, U);
         //cudaDeviceSynchronize();
-        swap_rows_U<<<2048,2048>>>(c, max_index, c, L);
+        swap_rows_U<<<2048,2048>>>(c, max_index, c, dimension, L);
         //cudaDeviceSynchronize();
         swap_rows_P<<<2048,2048>>>(c, max_index, dimension, P);
         cudaDeviceSynchronize();
@@ -145,7 +143,7 @@ void LU(double** matrix, double ** L, double ** U, double ** P, int dimension)
 		// 		U[r][k]		= U[r][k] - L[r][c]*U[c][k];
 		// 	}
 		// }
-        row_ops_kernel<<2048, 2048>>(L, U, c, dimension);
+        row_ops_kernel<<<2048, 2048>>>(c, dimension, L, U);
         cudaDeviceSynchronize();
 	}
 }
