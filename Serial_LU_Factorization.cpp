@@ -230,6 +230,27 @@ int main()
 
 	bool sameMatrix = checkAnswer(C, ans, 3);
 
+	// print out L matrix
+	cout << "L Matrix: " << endl;
+	for (int i=0; i<3; i++)
+	{
+		for (int j=0; j<3; j++)
+		{
+			cout << L[i][j] << " ";
+		}
+		cout << endl;
+	}
+	//print out U matrix
+	cout << "U Matrix: " << endl;
+	for (int i=0; i<3; i++)
+	{
+		for (int j=0; j<3; j++)
+		{
+			cout << U[i][j] << " ";
+		}
+		cout << endl;
+	}
+
 	cout << "Matrix: " << endl;
 	for (int i=0; i<3; i++)
 	{
