@@ -12,6 +12,7 @@
  * 
  */
 
+
 void flatten(double** matrix, double* flattened_matrix,int num_rows,int num_cols)
 {
     double ** c_matrix;
@@ -33,6 +34,8 @@ void flatten(double** matrix, double* flattened_matrix,int num_rows,int num_cols
     }
     cudaFree(c_matrix);
 } 
+
+
 
 void unflatten(double** matrix, double* flattened_matrix,int num_rows,int num_cols)
 {

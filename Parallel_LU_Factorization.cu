@@ -16,6 +16,7 @@
 #include <cuda_runtime.h>
 #include <curand.h>
 #include <curand_kernel.h>
+#include "cuda_io.h"
 
 #include <iostream>
 #include <random>
@@ -199,18 +200,18 @@ __global__ void generateSDDMatrix(double** matrix, int n) {
   }
 }
 
-__global__ void generateRandomValues(double** matrix, int n,
-                                     curandState* state) {
-  int row = blockIdx.x * blockDim.x + threadIdx.x;
-  int col = blockIdx.y * blockDim.y + threadIdx.y;
-  int index = row * n + col;
+// __global__ void generateRandomValues(double** matrix, int n,
+//                                      curandState* state) {
+//   int row = blockIdx.x * blockDim.x + threadIdx.x;
+//   int col = blockIdx.y * blockDim.y + threadIdx.y;
+//   int index = row * n + col;
 
-  if (col < n && row < n) {
-    curandState localState = state[index];
-    matrix[row][col] = curand_uniform(&localState) * 100.0;
-    state[index] = localState;
-  }
-}
+//   if (col < n && row < n) {
+//     curandState localState = state[index];
+//     matrix[row][col] = curand_uniform(&localState) * 100.0;
+//     state[index] = localState;
+//   }
+// }
 
 int main(int argc, char* argv[]) {
   // initialize matrix A using cudaMallocManaged
@@ -221,6 +222,7 @@ int main(int argc, char* argv[]) {
   double** P;
   double** LU;
   double** PA;
+  double * randMatrix;
   curandState* state;
   bool* equal;
 
@@ -230,6 +232,7 @@ int main(int argc, char* argv[]) {
   cudaMallocManaged(&P, dimension * sizeof(double*));
   cudaMallocManaged(&LU, dimension * sizeof(double*));
   cudaMallocManaged(&PA, dimension * sizeof(double*));
+  cudaMallocManaged(&randMatrix, dimension * dimension * sizeof(double))
   cudaMallocManaged(&equal, sizeof(bool));
   cudaMallocManaged(&state, dimension * dimension * sizeof(curandState));
 
@@ -256,11 +259,15 @@ int main(int argc, char* argv[]) {
   // A[2][1] = 7;
   // A[2][2] = 9;
 
-  // initialize A to be a random matrix
-  generateRandomValues<<<1, 32>>>(A, dimension, state);
+  curandGenerator_t prng;
+  curandCreateGenerator(&prng, CURAND_RNG_PSEUDO_DEFAULT);
+  curandSetPseudoRandomGeneratorSeed(prng, (unsigned long long)clock());
+  curandGenerateUniformDouble(prng, randMatrix, dimension * dimension);
+
+  cuda_unflatten<<<1,32>>>(A, randMatrix, dimension, dimension);
 
   // generate a strictly diagonally dominant matrix
-  // generateSDDMatrix<<<1, 32>>>(A, dimension);
+  generateSDDMatrix<<<1, 32>>>(A, dimension);
 
   // print A
   printf("A = \n");
@@ -309,6 +316,7 @@ int main(int argc, char* argv[]) {
   cudaFree(P);
   cudaFree(LU);
   cudaFree(PA);
+  cudaFree(randMatrix)
   cudaFree(equal);
   cudaFree(state);
 
