@@ -200,6 +200,20 @@ __global__ void generateSDDMatrix(double** matrix, int n) {
   }
 }
 
+__global__
+void cuda_unflatten(double** matrix, double* flattened_matrix,int num_rows,int num_cols)
+{
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
+    for(int i = index; i < num_rows; i+=stride)
+    {
+        for(int j = index; j < num_cols; j+=stride)
+        {
+            matrix[i][j] = flattened_matrix[i*num_cols+j]
+        }
+    }
+}
+
 // __global__ void generateRandomValues(double** matrix, int n,
 //                                      curandState* state) {
 //   int row = blockIdx.x * blockDim.x + threadIdx.x;
