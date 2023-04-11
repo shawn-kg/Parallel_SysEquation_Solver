@@ -160,39 +160,18 @@ void LU_fact(double** matrix, double** L, double** U, double** P,
       }
     }
 
-    swap_rows_U<<<1, 32>>>(c, max_index, c, dimension, U);
+    swap_rows_U<<<dimension, dimension>>>(c, max_index, c, dimension, U);
 
-    swap_rows_L<<<1, 32>>>(c, max_index, c, L);
+    swap_rows_L<<<dimension, dimension>>>(c, max_index, c, L);
 
-    swap_rows_P<<<1, 32>>>(c, max_index, dimension, P);
+    swap_rows_P<<<dimension, dimension>>>(c, max_index, dimension, P);
 
-    row_ops_kernel<<<1, 32>>>(c, dimension, L, U);
+    row_ops_kernel<<<dimension, dimension>>>(c, dimension, L, U);
     cudaDeviceSynchronize();
   }
 }
 
-// cuda kernel to generate random values for a 2d matrix
-// __global__ void generateRandomValues(double** matrix, int n, int seed,
-//                                      curandState_t* state) {
-//   int row = blockIdx.x * blockDim.x + threadIdx.x;
-//   int col = blockIdx.y * blockDim.y + threadIdx.y;
 
-//   // Fill diagonal with random values between 1 and 10
-//   random_device rd;
-//   mt19937 gen(rd());
-//   uniform_real_distribution<double> dis(1.0, 10.0);
-
-//   // Fill off-diagonal with random values between -1 and 1
-//   uniform_real_distribution<double> dis_off(-1.0, 1.0);
-//   if (row < n && col < n) {
-//     // use rand to generate random values
-//     if (row == col) {
-//       matrix[row][col] = dis(gen);
-//     } else {
-//       matrix[row][col] = dis_off(gen);
-//     }
-//   }
-// }
 
 // cuda kernel to generate a strictly diagonally dominant matrix
 __global__ void generateSDDMatrix(double** matrix, int n) {
@@ -266,62 +245,62 @@ int main(int argc, char* argv[]) {
   // A = [ 2  1  1 ]
   //     [ 4  3  3 ]
   //     [ 8  7  9 ]
-  // A[0][0] = 2;
-  // A[0][1] = 1;
-  // A[0][2] = 1;
-  // A[1][0] = 4;
-  // A[1][1] = 3;
-  // A[1][2] = 3;
-  // A[2][0] = 8;
-  // A[2][1] = 7;
-  // A[2][2] = 9;
+  A[0][0] = 2;
+  A[0][1] = 1;
+  A[0][2] = 1;
+  A[1][0] = 4;
+  A[1][1] = 3;
+  A[1][2] = 3;
+  A[2][0] = 8;
+  A[2][1] = 7;
+  A[2][2] = 9;
 
   // initialize curand state
-  rand_init<<<1, 9>>>(state);
+  // rand_init<<<1, 9>>>(state);
 
-  int block_size = 32;
+  // int block_size = 32;
 
-  dim3 grid_size((dimension + block_size - 1) / block_size,
-                 (dimension + block_size - 1) / block_size);
-  dim3 blocksize(block_size, block_size);
+  // dim3 grid_size((dimension + block_size - 1) / block_size,
+  //                (dimension + block_size - 1) / block_size);
+  // dim3 blocksize(block_size, block_size);
 
-  // initialize A to be a random matrix
-  generateRandomValues<<<grid_size, blocksize>>>(A, dimension, state);
+  // // initialize A to be a random matrix
+  // generateRandomValues<<<dimension, dimension>>>(A, dimension, state);
 
-  // generate a strictly diagonally dominant matrix
-  generateSDDMatrix<<<grid_size, blocksize>>>(A, dimension);
-  cudaDeviceSynchronize();
+  // // generate a strictly diagonally dominant matrix
+  // generateSDDMatrix<<<dimension, dimension>>>(A, dimension);
+  // cudaDeviceSynchronize();
 
   // print A
   printf("A = \n");
   print_matrix(A, dimension);
 
   // LU factorization
-  // LU_fact(A, L, U, P, dimension);
+  LU_fact(A, L, U, P, dimension);
 
-  // // print results
-  // printf("L = \n");
-  // print_matrix(L, dimension);
+  // print results
+  printf("L = \n");
+  print_matrix(L, dimension);
 
-  // printf("\nU = \n");
-  // print_matrix(U, dimension);
+  printf("\nU = \n");
+  print_matrix(U, dimension);
 
-  // // compute LU and PA
-  // matrix_mult<<<1, 32>>>(L, U, LU, dimension);
-  // // cudaDeviceSynchronize();
-  // matrix_mult<<<1, 32>>>(P, A, PA, dimension);
+  // compute LU and PA
+  matrix_mult<<<dimension, dimension>>>(L, U, LU, dimension);
   // cudaDeviceSynchronize();
+  matrix_mult<<<dimension, dimension>>>(P, A, PA, dimension);
+  cudaDeviceSynchronize();
 
-  // // check if LU = PA using check_matrix_equivalence
-  // check_matrix_equivalence<<<1, 32>>>(LU, PA, equal, dimension);
-  // cudaDeviceSynchronize();
+  // check if LU = PA using check_matrix_equivalence
+  check_matrix_equivalence<<<dumension, dimension>>>(LU, PA, equal, dimension);
+  cudaDeviceSynchronize();
 
-  // // print results
-  // if (*equal) {
-  //   printf("\nLU = PA\n");
-  // } else {
-  //   printf("\nLU != PA\n");
-  // }
+  // print results
+  if (*equal) {
+    printf("\nLU = PA\n");
+  } else {
+    printf("\nLU != PA\n");
+  }
 
   // free memory
   for (int r = 0; r < dimension; r++) {
