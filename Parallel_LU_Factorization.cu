@@ -13,10 +13,13 @@
  *
  */
 
+
+// compile -lcurand flag at the end
+
+
 #include <cuda_runtime.h>
 #include <curand.h>
 #include <curand_kernel.h>
-#include "cuda_io.h"
 
 #include <iostream>
 #include <random>
