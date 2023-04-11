@@ -22,6 +22,18 @@
 
 using namespace std;
 
+// compile -lcurand flag at the end
+
+
+#include <cuda_runtime.h>
+#include <curand.h>
+#include <curand_kernel.h>
+
+#include <iostream>
+#include <random>
+
+using namespace std;
+
 __global__ void check_matrix_equivalence(double** A, double** B, bool* equal,
                                          int dimension) {
   int index = blockIdx.x * blockDim.x + threadIdx.x;
