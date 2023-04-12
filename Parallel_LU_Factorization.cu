@@ -213,7 +213,11 @@ __global__ void generateRandomValues(double** matrix, int n,
 
 int main(int argc, char* argv[]) {
   // initialize matrix A using cudaMallocManaged
+<<<<<<< HEAD
   int dimension = 50;
+=======
+  int dimension = 800;
+>>>>>>> fc75f8d1905ba362255309fe43a1ab7f3e2539fc
   double** A;
   double** L;
   double** U;
