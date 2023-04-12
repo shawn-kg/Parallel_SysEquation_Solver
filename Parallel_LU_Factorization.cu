@@ -22,7 +22,6 @@
 
 using namespace std;
 
-// compile -lcurand flag at the end
 
 
 #include <cuda_runtime.h>
@@ -31,6 +30,7 @@ using namespace std;
 
 #include <iostream>
 #include <random>
+#include "clockcycle.h"
 
 using namespace std;
 
@@ -160,13 +160,13 @@ void LU_fact(double** matrix, double** L, double** U, double** P,
       }
     }
 
-    swap_rows_U<<<dimension, dimension>>>(c, max_index, c, dimension, U);
+    swap_rows_U<<<1024, 1024>>>(c, max_index, c, dimension, U);
 
-    swap_rows_L<<<dimension, dimension>>>(c, max_index, c, L);
+    swap_rows_L<<<1024, 1024>>>(c, max_index, c, L);
 
-    swap_rows_P<<<dimension, dimension>>>(c, max_index, dimension, P);
+    swap_rows_P<<<1024, 1024>>>(c, max_index, dimension, P);
 
-    row_ops_kernel<<<dimension, dimension>>>(c, dimension, L, U);
+    row_ops_kernel<<<1024, 1024>>>(c, dimension, L, U);
     cudaDeviceSynchronize();
   }
 }
@@ -213,7 +213,7 @@ __global__ void generateRandomValues(double** matrix, int n,
 
 int main(int argc, char* argv[]) {
   // initialize matrix A using cudaMallocManaged
-  int dimension = 3;
+  int dimension = 50;
   double** A;
   double** L;
   double** U;
@@ -222,6 +222,10 @@ int main(int argc, char* argv[]) {
   double** PA;
   curandState* state;
   bool* equal;
+
+  unsigned long long start_time = clock_now(); // used to time functions
+  unsigned long long end_time = clock_now();
+  double cycles_per_second = 512000000;
 
   cudaMallocManaged(&A, dimension * sizeof(double*));
   cudaMallocManaged(&L, dimension * sizeof(double*));
@@ -241,49 +245,40 @@ int main(int argc, char* argv[]) {
     cudaMallocManaged(&PA[r], dimension * sizeof(double));
   }
 
-  // initialize A to be this matrix
-  // A = [ 2  1  1 ]
-  //     [ 4  3  3 ]
-  //     [ 8  7  9 ]
-  A[0][0] = 2;
-  A[0][1] = 1;
-  A[0][2] = 1;
-  A[1][0] = 4;
-  A[1][1] = 3;
-  A[1][2] = 3;
-  A[2][0] = 8;
-  A[2][1] = 7;
-  A[2][2] = 9;
+
 
   // initialize curand state
-  // rand_init<<<1, 9>>>(state);
+  rand_init<<<dimension, dimension>>>(state);
 
-  // int block_size = 32;
+  int block_size = 32;
 
-  // dim3 grid_size((dimension + block_size - 1) / block_size,
-  //                (dimension + block_size - 1) / block_size);
-  // dim3 blocksize(block_size, block_size);
+  dim3 grid_size((dimension + block_size - 1) / block_size,
+                 (dimension + block_size - 1) / block_size);
+  dim3 blocksize(block_size, block_size);
 
-  // // initialize A to be a random matrix
-  // generateRandomValues<<<dimension, dimension>>>(A, dimension, state);
+  // initialize A to be a random matrix
+  generateRandomValues<<<grid_size, blocksize>>>(A, dimension, state);
 
-  // // generate a strictly diagonally dominant matrix
-  // generateSDDMatrix<<<dimension, dimension>>>(A, dimension);
-  // cudaDeviceSynchronize();
+  // generate a strictly diagonally dominant matrix
+  generateSDDMatrix<<<grid_size, blocksize>>>(A, dimension);
+  cudaDeviceSynchronize();
 
   // print A
-  printf("A = \n");
-  print_matrix(A, dimension);
+  // printf("A = \n");
+  // print_matrix(A, dimension);
 
   // LU factorization
+  start_time = clock_now();
   LU_fact(A, L, U, P, dimension);
+  end_time = clock_now();
+  double time_elapsed = (double) ((end_time-start_time)/cycles_per_second);
 
-  // print results
-  printf("L = \n");
-  print_matrix(L, dimension);
+  // // print results
+  // printf("L = \n");
+  // print_matrix(L, dimension);
 
-  printf("\nU = \n");
-  print_matrix(U, dimension);
+  // printf("\nU = \n");
+  // print_matrix(U, dimension);
 
   // compute LU and PA
   matrix_mult<<<dimension, dimension>>>(L, U, LU, dimension);
@@ -292,8 +287,11 @@ int main(int argc, char* argv[]) {
   cudaDeviceSynchronize();
 
   // check if LU = PA using check_matrix_equivalence
-  check_matrix_equivalence<<<dumension, dimension>>>(LU, PA, equal, dimension);
+  check_matrix_equivalence<<<dimension, dimension>>>(LU, PA, equal, dimension);
   cudaDeviceSynchronize();
+
+  // print number of dimensions
+  printf("Dimension: %d\n", dimension);
 
   // print results
   if (*equal) {
@@ -301,6 +299,13 @@ int main(int argc, char* argv[]) {
   } else {
     printf("\nLU != PA\n");
   }
+
+  printf("Time elapsed: %f seconds\n", time_elapsed);
+
+  // printf("LU = \n");
+  // print_matrix(LU, dimension);
+  // printf("\nPA = \n");
+  // print_matrix(PA, dimension);
 
   // free memory
   for (int r = 0; r < dimension; r++) {
