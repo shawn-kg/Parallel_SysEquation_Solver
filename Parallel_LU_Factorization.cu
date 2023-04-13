@@ -31,6 +31,7 @@ using namespace std;
 #include <iostream>
 #include <random>
 #include "clockcycle.h"
+#include "clockcycle.h"
 
 using namespace std;
 
@@ -201,7 +202,7 @@ __global__ void generateRandomValues(double** matrix, int n,
 
 int main(int argc, char* argv[]) {
   // initialize matrix A using cudaMallocManaged
-  int dimension = 800;
+  int dimension = 50;
   double** A;
   double** L;
   double** U;
@@ -255,8 +256,11 @@ int main(int argc, char* argv[]) {
   // printf("A = \n");
   // print_matrix(A, dimension);
 
+
+
   // LU factorization
-    // make sure that P,L = I and U = matrix
+
+      // make sure that P,L = I and U = matrix
   for (int r = 0; r < dimension; r++) {
     for (int c = 0; c < dimension; c++) {
       if (r == c) {
