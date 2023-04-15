@@ -21,6 +21,8 @@
 #include <iostream>
 #include <random>
 
+#include "clockcycle.h"
+
 using namespace std;
 
 void LU(double** matrix, double** L, double** U, double** P, int dimension) {
@@ -146,43 +148,44 @@ void generateSDD(double** A, int n) {
 }
 
 int main() {
-  int n = 3;
+  int n = 800;
   double** A = new double*[n];
   for (int i = 0; i < n; i++) {
     A[i] = new double[n];
   }
-  // generateSDD(A, n);
-   // initialize A to be this matrix
-  // A = [ 2  1  1 ]
-  //     [ 4  3  3 ]
-  //     [ 8  7  9 ]
-  A[0][0] = 2;
-  A[0][1] = 1;
-  A[0][2] = 1;
-  A[1][0] = 4;
-  A[1][1] = 3;
-  A[1][2] = 3;
-  A[2][0] = 8;
-  A[2][1] = 7;
-  A[2][2] = 9;
+
+  generateSDD(A, n);
+  // // initialize A to be this matrix
+  // // A = [ 2  1  1 ]
+  // //     [ 4  3  3 ]
+  // //     [ 8  7  9 ]
+  // A[0][0] = 2;
+  // A[0][1] = 1;
+  // A[0][2] = 1;
+  // A[1][0] = 4;
+  // A[1][1] = 3;
+  // A[1][2] = 3;
+  // A[2][0] = 8;
+  // A[2][1] = 7;
+  // A[2][2] = 9;
 
   double** matrix;
   double** U;
   double** L;
   double** P;
 
-  L = new double*[3];
-  P = new double*[3];
-  U = new double*[3];
+  L = new double*[n];
+  P = new double*[n];
+  U = new double*[n];
 
-  matrix = new double*[3];
+  matrix = new double*[n];
   int num = 1;
-  for (int r = 0; r < 3; r++) {
-    matrix[r] = new double[3];
-    U[r] = new double[3];
-    L[r] = new double[3];
-    P[r] = new double[3];
-    for (int c = 0; c < 3; c++) {
+  for (int r = 0; r < n; r++) {
+    matrix[r] = new double[n];
+    U[r] = new double[n];
+    L[r] = new double[n];
+    P[r] = new double[n];
+    for (int c = 0; c < n; c++) {
       matrix[r][c] = A[r][c];
       U[r][c] = A[r][c];
       L[r][c] = (r == c) ? 1 : 0;
@@ -191,60 +194,65 @@ int main() {
     }
   }
 
-  LU(matrix, L, U, P, 3);
+  unsigned long long start_time;
+  unsigned long long end_time;
+  double cycles_per_second = 512000000;
+  double time_elapsed;
 
-  double** C = new double*[3];
-  for (int i = 0; i < 3; i++) {
-    C[i] = new double[3];
+  start_time = clock_now();
+  LU(matrix, L, U, P, n);
+  end_time = clock_now();
+  time_elapsed = (double)(end_time - start_time) / cycles_per_second;
+
+  double** C = new double*[n];
+  for (int i = 0; i < n; i++) {
+    C[i] = new double[n];
   }
 
-  double** ans = new double*[3];
-  for (int i = 0; i < 3; i++) {
-    ans[i] = new double[3];
+  double** ans = new double*[n];
+  for (int i = 0; i < n; i++) {
+    ans[i] = new double[n];
   }
 
-  matrixMult(P, matrix, C, 3);
+  matrixMult(P, matrix, C, n);
 
-  matrixMult(L, U, ans, 3);
+  matrixMult(L, U, ans, n);
 
-  bool sameMatrix = checkAnswer(C, ans, 3);
+  bool sameMatrix = checkAnswer(C, ans, n);
 
-	// print out L matrix
-	cout << "L Matrix: " << endl;
-	for (int i=0; i<3; i++)
-	{
-		for (int j=0; j<3; j++)
-		{
-			cout << L[i][j] << " ";
-		}
-		cout << endl;
-	}
-	//print out U matrix
-	cout << "U Matrix: " << endl;
-	for (int i=0; i<3; i++)
-	{
-		for (int j=0; j<3; j++)
-		{
-			cout << U[i][j] << " ";
-		}
-		cout << endl;
-	}
+  // print out L matrix
+  // cout << "L Matrix: " << endl;
+  // for (int i = 0; i < n; i++) {
+  //   for (int j = 0; j < n; j++) {
+  //     cout << L[i][j] << " ";
+  //   }
+  //   cout << endl;
+  // }
 
-  cout << "Matrix: " << endl;
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
-      cout << matrix[i][j] << " ";
-    }
-    cout << endl;
-  }
+  // // print out U matrix
+  // cout << "U Matrix: " << endl;
+  // for (int i = 0; i < n; i++) {
+  //   for (int j = 0; j < n; j++) {
+  //     cout << U[i][j] << " ";
+  //   }
+  //   cout << endl;
+  // }
 
-  cout << "Answer Matrix: " << endl;
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
-      cout << ans[i][j] << " ";
-    }
-    cout << endl;
-  }
+  // cout << "Matrix: " << endl;
+  // for (int i = 0; i < n; i++) {
+  //   for (int j = 0; j < n; j++) {
+  //     cout << matrix[i][j] << " ";
+  //   }
+  //   cout << endl;
+  // }
+
+  // cout << "Answer Matrix: " << endl;
+  // for (int i = 0; i < n; i++) {
+  //   for (int j = 0; j < n; j++) {
+  //     cout << ans[i][j] << " ";
+  //   }
+  //   cout << endl;
+  // }
 
   if (sameMatrix) {
     cout << "The matrices are the same" << endl;
@@ -252,7 +260,9 @@ int main() {
     cout << "The matrices are not the same" << endl;
   }
 
-  for (int r = 0; r < 3; r++) {
+  printf("Time elapsed: %f seconds\n", time_elapsed);
+
+  for (int r = 0; r < n; r++) {
     free(A[r]);
     free(matrix[r]);
     free(U[r]);
