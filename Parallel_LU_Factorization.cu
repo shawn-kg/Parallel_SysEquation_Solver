@@ -20,17 +20,6 @@
 #include <iostream>
 #include <random>
 
-using namespace std;
-
-
-
-#include <cuda_runtime.h>
-#include <curand.h>
-#include <curand_kernel.h>
-
-#include <iostream>
-#include <random>
-#include "clockcycle.h"
 #include "clockcycle.h"
 
 using namespace std;
@@ -114,8 +103,6 @@ __global__ void row_ops_kernel(int col, int dimension, double** L, double** U) {
   for (int r = col + 1 + index; r < dimension; r += stride) {
     L[r][col] = U[r][col] / U[col][col];
 
-    // __syncthreads();  // make sure all threads have computed L[r][col]
-
     // distribute this loop across the y-dimension of the threadblock
     for (int k = col + threadIdx.y; k < dimension; k += blockDim.y) {
       U[r][k] = U[r][k] - L[r][col] * U[col][k];
@@ -135,8 +122,6 @@ void print_matrix(double** matrix, int dimension) {
 
 void LU_fact(double** matrix, double** L, double** U, double** P,
              int dimension) {
-
-
   // begin factorization with partial pivoting
   for (int c = 0; c < dimension - 1; c++) {
     double max = fabs(U[c][c]);
@@ -149,18 +134,16 @@ void LU_fact(double** matrix, double** L, double** U, double** P,
       }
     }
 
-    swap_rows_U<<<dimension, dimension>>>(c, max_index, c, dimension, U);
+    swap_rows_U<<<2048, 2048>>>(c, max_index, c, dimension, U);
 
-    swap_rows_L<<<dimension, dimension>>>(c, max_index, c, L);
+    swap_rows_L<<<2048, 2048>>>(c, max_index, c, L);
 
-    swap_rows_P<<<dimension, dimension>>>(c, max_index, dimension, P);
+    swap_rows_P<<<2048, 2048>>>(c, max_index, dimension, P);
 
-    row_ops_kernel<<<dimension, dimension>>>(c, dimension, L, U);
+    row_ops_kernel<<<2048, 2048>>>(c, dimension, L, U);
     cudaDeviceSynchronize();
   }
 }
-
-
 
 // cuda kernel to generate a strictly diagonally dominant matrix
 __global__ void generateSDDMatrix(double** matrix, int n) {
@@ -185,8 +168,8 @@ __global__ void rand_init(curandState* state) {
   curand_init(1337, idx, 0, &state[idx]);
 }
 
-__global__ void generateRandomValues(double** matrix, int n,
-                                     curandState* state) {
+__global__ void generateRandomValues(double** matrix, int n, curandState* state,
+                                     double density) {
   int col = blockIdx.x * blockDim.x + threadIdx.x;
   int row = blockIdx.y * blockDim.y + threadIdx.y;
 
@@ -195,6 +178,12 @@ __global__ void generateRandomValues(double** matrix, int n,
     double rand = curand_uniform_double(&localState);
     state[row * n + col] = localState;
 
+    // if (rand > density) {
+    //   matrix[row][col] = 0;
+    // } else {
+    //   matrix[row][col] = rand * 9 + 1;
+    // }
+
     // use rand to generate random values
     matrix[row][col] = rand * 9 + 1;
   }
@@ -202,7 +191,8 @@ __global__ void generateRandomValues(double** matrix, int n,
 
 int main(int argc, char* argv[]) {
   // initialize matrix A using cudaMallocManaged
-  int dimension = 50;
+  int dimension = 1000;
+  int density = 0.1;
   double** A;
   double** L;
   double** U;
@@ -212,7 +202,7 @@ int main(int argc, char* argv[]) {
   curandState* state;
   bool* equal;
 
-  unsigned long long start_time = clock_now(); // used to time functions
+  unsigned long long start_time = clock_now();  // used to time functions
   unsigned long long end_time = clock_now();
   double cycles_per_second = 512000000;
 
@@ -234,33 +224,29 @@ int main(int argc, char* argv[]) {
     cudaMallocManaged(&PA[r], dimension * sizeof(double));
   }
 
-
-
   // initialize curand state
-  rand_init<<<dimension, dimension>>>(state);
+  rand_init<<<2048, 2048>>>(state);
 
-  int block_size = 32;
+  // int block_size = 2048;
 
-  dim3 grid_size((dimension + block_size - 1) / block_size,
-                 (dimension + block_size - 1) / block_size);
-  dim3 blocksize(block_size, block_size);
+  // dim3 grid_size((dimension + block_size - 1) / block_size,
+  //                (dimension + block_size - 1) / block_size);
+  // dim3 blocksize(block_size, block_size);
 
   // initialize A to be a random matrix
-  generateRandomValues<<<grid_size, blocksize>>>(A, dimension, state);
+  generateRandomValues<<<2048, 2048>>>(A, dimension, state, density);
 
   // generate a strictly diagonally dominant matrix
-  generateSDDMatrix<<<grid_size, blocksize>>>(A, dimension);
+  generateSDDMatrix<<<2048, 2048>>>(A, dimension);
   cudaDeviceSynchronize();
 
-  // print A
+  // // print A
   // printf("A = \n");
   // print_matrix(A, dimension);
 
-
-
   // LU factorization
 
-      // make sure that P,L = I and U = matrix
+  // make sure that P,L = I and U = matrix
   for (int r = 0; r < dimension; r++) {
     for (int c = 0; c < dimension; c++) {
       if (r == c) {
@@ -273,10 +259,11 @@ int main(int argc, char* argv[]) {
       U[r][c] = A[r][c];
     }
   }
+
   start_time = clock_now();
   LU_fact(A, L, U, P, dimension);
   end_time = clock_now();
-  double time_elapsed = (double) ((end_time-start_time)/cycles_per_second);
+  double time_elapsed = (double)((end_time - start_time) / cycles_per_second);
 
   // // print results
   // printf("L = \n");
@@ -286,13 +273,23 @@ int main(int argc, char* argv[]) {
   // print_matrix(U, dimension);
 
   // compute LU and PA
-  matrix_mult<<<dimension, dimension>>>(L, U, LU, dimension);
+  matrix_mult<<<2048, 2048>>>(L, U, LU, dimension);
   // cudaDeviceSynchronize();
-  matrix_mult<<<dimension, dimension>>>(P, A, PA, dimension);
+  matrix_mult<<<2048, 2048>>>(P, A, PA, dimension);
   cudaDeviceSynchronize();
 
+  // check_matrix_equivalence<<<dimension, dimension>>>(U, A, equal, dimension);
+  // cudaDeviceSynchronize();
+
+  // // print results
+  // if (*equal) {
+  //   printf("\nU = A\n");
+  // } else {
+  //   printf("\nU != A\n");
+  // }
+
   // check if LU = PA using check_matrix_equivalence
-  check_matrix_equivalence<<<dimension, dimension>>>(LU, PA, equal, dimension);
+  check_matrix_equivalence<<<1024, 1024>>>(LU, PA, equal, dimension);
   cudaDeviceSynchronize();
 
   // print number of dimensions
