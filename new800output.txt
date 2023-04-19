@@ -1,4 +1,0 @@
-Dimension: 800
-
-LU = PA
-Time elapsed: 2.930124 seconds
