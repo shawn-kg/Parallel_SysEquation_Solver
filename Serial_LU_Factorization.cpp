@@ -88,6 +88,15 @@ void LU(double** matrix, double** L, double** U, double** P, int dimension) {
   }
 }
 
+/**
+ * @brief Checks the answer of the LU factorization
+ * 
+ * @param matrix original matrix
+ * @param answer lu decomposed matrices
+ * @param dimension 
+ * @return true if they are equal
+ * @return false if they are not equal
+ */
 bool checkAnswer(double** matrix, double** answer, int dimension) {
   for (int r = 0; r < dimension; r++) {
     for (int c = 0; c < dimension; c++) {
@@ -100,6 +109,14 @@ bool checkAnswer(double** matrix, double** answer, int dimension) {
   return true;
 }
 
+/**
+ * @brief Multiplies two matrices together
+ * 
+ * @param A First matric
+ * @param B Second matrix
+ * @param C Resulting matrix
+ * @param dimension 
+ */
 void matrixMult(double** A, double** B, double** C, int dimension) {
   for (int i = 0; i < dimension; i++) {
     for (int j = 0; j < dimension; j++) {
@@ -111,7 +128,13 @@ void matrixMult(double** A, double** B, double** C, int dimension) {
   }
 }
 
-// Function to generate a strictly diagonally dominant matrix of size n
+/**
+ * @brief Function to generate a strictly diagonally dominant matrix
+ * 
+ * @param A  matrix to be generated
+ * @param n 
+ * @return 
+ */
 void generateSDD(double** A, int n) {
   // Initialize matrix with zeros
 
@@ -148,6 +171,7 @@ void generateSDD(double** A, int n) {
 }
 
 int main() {
+  // Testing
   int n = 800;
   double** A = new double*[n];
   for (int i = 0; i < n; i++) {
