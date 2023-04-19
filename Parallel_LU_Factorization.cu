@@ -120,8 +120,6 @@ void print_matrix(double** matrix, int dimension) {
   }
 }
 
-
-
 void LU_fact(double** matrix, double** L, double** U, double** P,
              int dimension) {
   // begin factorization with partial pivoting
@@ -147,11 +145,12 @@ void LU_fact(double** matrix, double** L, double** U, double** P,
   }
 }
 
-extern void matrix_cuda_alloc(double ** matrix,dimension){
+extern void matrix_cuda_alloc(double** matrix, int dimension) {
   cudaMallocManaged(matrix, dimension * dimension * sizeof(double));
 }
 
-extern void matrix_cuda_free(double** matrix, double **L, double **U, double **P){
+extern void matrix_cuda_free(double** matrix, double** L, double** U,
+                             double** P) {
   cudaFree(matrix);
   cudaFree(L);
   cudaFree(U);
@@ -159,8 +158,7 @@ extern void matrix_cuda_free(double** matrix, double **L, double **U, double **P
 }
 
 extern void Lu_fact_wrapper(double** matrix, double** L, double** U, double** P,
-  int dimension)
-{
+                            int dimension) {
   double** L2D;
   double** U2D;
   double** P2D;
@@ -176,10 +174,10 @@ extern void Lu_fact_wrapper(double** matrix, double** L, double** U, double** P,
   cudaMallocManaged(P, dimension * dimension * sizeof(double));
 
   for (int i = 0; i < dimension; i++) {
-    matrix2d[i] = matrix +(i*dimension);
-    L2D[i] = L +(i*dimension);
-    U2D[i] = U +(i*dimension);
-    P2D[i] = P +(i*dimension);
+    matrix2D[i] = *matrix + (i * dimension);
+    L2D[i] = *L + (i * dimension);
+    U2D[i] = *U + (i * dimension);
+    P2D[i] = *P + (i * dimension);
   }
 
   for (int r = 0; r < dimension; r++) {
@@ -201,7 +199,6 @@ extern void Lu_fact_wrapper(double** matrix, double** L, double** U, double** P,
   cudaFree(L2D);
   cudaFree(U2D);
   cudaFree(P2D);
-
 }
 
 // cuda kernel to generate a strictly diagonally dominant matrix
