@@ -234,11 +234,6 @@ __global__ void generateRandomValues(double** matrix, int n, curandState* state,
     double rand = curand_uniform_double(&localState);
     state[row * n + col] = localState;
 
-    // if (rand > density) {
-    //   matrix[row][col] = 0;
-    // } else {
-    //   matrix[row][col] = rand * 9 + 1;
-    // }
 
     // use rand to generate random values
     matrix[row][col] = rand * 9 + 1;

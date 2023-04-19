@@ -155,19 +155,6 @@ int main() {
   }
 
   generateSDD(A, n);
-  // // initialize A to be this matrix
-  // // A = [ 2  1  1 ]
-  // //     [ 4  3  3 ]
-  // //     [ 8  7  9 ]
-  // A[0][0] = 2;
-  // A[0][1] = 1;
-  // A[0][2] = 1;
-  // A[1][0] = 4;
-  // A[1][1] = 3;
-  // A[1][2] = 3;
-  // A[2][0] = 8;
-  // A[2][1] = 7;
-  // A[2][2] = 9;
 
   double** matrix;
   double** U;
@@ -219,40 +206,6 @@ int main() {
   matrixMult(L, U, ans, n);
 
   bool sameMatrix = checkAnswer(C, ans, n);
-
-  // print out L matrix
-  // cout << "L Matrix: " << endl;
-  // for (int i = 0; i < n; i++) {
-  //   for (int j = 0; j < n; j++) {
-  //     cout << L[i][j] << " ";
-  //   }
-  //   cout << endl;
-  // }
-
-  // // print out U matrix
-  // cout << "U Matrix: " << endl;
-  // for (int i = 0; i < n; i++) {
-  //   for (int j = 0; j < n; j++) {
-  //     cout << U[i][j] << " ";
-  //   }
-  //   cout << endl;
-  // }
-
-  // cout << "Matrix: " << endl;
-  // for (int i = 0; i < n; i++) {
-  //   for (int j = 0; j < n; j++) {
-  //     cout << matrix[i][j] << " ";
-  //   }
-  //   cout << endl;
-  // }
-
-  // cout << "Answer Matrix: " << endl;
-  // for (int i = 0; i < n; i++) {
-  //   for (int j = 0; j < n; j++) {
-  //     cout << ans[i][j] << " ";
-  //   }
-  //   cout << endl;
-  // }
 
   if (sameMatrix) {
     cout << "The matrices are the same" << endl;

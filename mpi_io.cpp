@@ -98,12 +98,20 @@ int main(int argc, char** argv) {
     MPI_Send(buf, double_per_rank + (num_doubles % double_per_rank), MPI_DOUBLE,
              0, 0, MPI_COMM_WORLD);
     delete[] buf;
-    MPI_File_close(&fh);
-    MPI_File_open(MPI_COMM_WORLD, "outfile", MPI_MODE_WRONLY, MPI_INFO_NULL,
-                  &fh);
+
     cout << "me\n";
     cout << "when" << rank << ":" << fh << "\n";
-    write(nullptr, num_rows, num_cols, fh, num_ranks, doubles_per_rank, rank);
+    MPI_File_close(&fh);
+    MPI_File_open(MPI_COMM_WORLD, "L", MPI_MODE_WRONLY, MPI_INFO_NULL,&fh);
+    write(nullptr, num_rows, num_cols, fh, num_ranks, doubles_per_rank,rank);
+    
+    MPI_File_close(&fh);
+    MPI_File_open(MPI_COMM_WORLD, "U", MPI_MODE_WRONLY, MPI_INFO_NULL,&fh);
+    write(nullptr, num_rows, num_cols, fh, num_ranks, doubles_per_rank,rank);
+
+    MPI_File_close(&fh);
+    MPI_File_open(MPI_COMM_WORLD, "P", MPI_MODE_WRONLY, MPI_INFO_NULL,&fh);
+    write(nullptr, num_rows, num_cols, fh, num_ranks, doubles_per_rank,rank);
 
     cout << "here" << rank << "\n";
   } else if (rank != 0) {
@@ -115,13 +123,25 @@ int main(int argc, char** argv) {
                          double_per_rank, MPI_DOUBLE, &status);
     MPI_Send(buf, double_per_rank, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
     delete[] buf;
-    MPI_File_close(&fh);
-    MPI_File_open(MPI_COMM_WORLD, "outfile", MPI_MODE_WRONLY, MPI_INFO_NULL,
-                  &fh);
-
     cout << "when" << rank << ":" << fh << "\n";
-    write(nullptr, num_rows, num_cols, fh, num_ranks, doubles_per_rank, rank);
+    
+    MPI_File_close(&fh);
+    MPI_File_open(MPI_COMM_WORLD, "L", MPI_MODE_WRONLY, MPI_INFO_NULL,&fh);
+    write(nullptr, num_rows, num_cols, fh, num_ranks, doubles_per_rank,rank);
+    
+    MPI_File_close(&fh);
+    MPI_File_open(MPI_COMM_WORLD, "U", MPI_MODE_WRONLY, MPI_INFO_NULL,&fh);
+    write(nullptr, num_rows, num_cols, fh, num_ranks, doubles_per_rank,rank);
+
+    MPI_File_close(&fh);
+    MPI_File_open(MPI_COMM_WORLD, "P", MPI_MODE_WRONLY, MPI_INFO_NULL,&fh);
+    write(nullptr, num_rows, num_cols, fh, num_ranks, doubles_per_rank,rank);
+
+
+
     cout << "here" << rank << "\n";
+
+    
   } else {
     // double* flattened_matrix = new double[num_cols*num_rows];
     double* flattened_matrix;
@@ -146,18 +166,28 @@ int main(int argc, char** argv) {
                  MPI_DOUBLE, i, 0, MPI_COMM_WORLD, &status);
     }
 
-    // double** matrix = new double*[num_rows];
-    // for(int i = 0; i < num_rows; ++i)
-    //   matrix[i] =  flattened_matrix+(i*num_cols);
+
 
     double* L;
     double* U;
     double* P;
-    // LU_fact(matrix,L,U,P,num_cols);
     Lu_fact_wrapper(&flattened_matrix, &L, &U, &P, num_cols);
+    
+    MPI_File_close(&fh);
+    MPI_File_open(MPI_COMM_WORLD, "L", MPI_MODE_WRONLY, MPI_INFO_NULL,&fh);
+    write(L, num_rows, num_cols, fh, num_ranks, doubles_per_rank,rank);
+    
+    MPI_File_close(&fh);
+    MPI_File_open(MPI_COMM_WORLD, "U", MPI_MODE_WRONLY, MPI_INFO_NULL,&fh);
+    write(U, num_rows, num_cols, fh, num_ranks, doubles_per_rank,rank);
+
+    MPI_File_close(&fh);
+    MPI_File_open(MPI_COMM_WORLD, "P", MPI_MODE_WRONLY, MPI_INFO_NULL,&fh);
+    write(P, num_rows, num_cols, fh, num_ranks, doubles_per_rank,rank);
+    
     cout << "bruh\n";
-    write(flattened_matrix, num_rows, num_cols, fh, num_ranks, doubles_per_rank,
-          rank);
+    
+    
     // write(L,num_rows,num_cols,fh,num_ranks,doubles_per_rank,rank);
     // write(U,num_rows,num_cols,fh,num_ranks,doubles_per_rank,rank);
     // write(P,num_rows,num_cols,fh,num_ranks,doubles_per_rank,rank);
