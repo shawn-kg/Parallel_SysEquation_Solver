@@ -177,7 +177,7 @@ extern void Lu_fact_wrapper(double** matrix, double** L, double** U, double** P,
 
   for (int i = 0; i < dimension; i++) {
     matrix2d[i] = matrix +(i*dimension);
-    L2D[i] = L +(i*dimension)
+    L2D[i] = L +(i*dimension);
     U2D[i] = U +(i*dimension);
     P2D[i] = P +(i*dimension);
   }
