@@ -23,7 +23,21 @@ using namespace std;
 /*
 This file is handles all the parallel io operations for the input and
 output matrices. It is also the starting point from the program.
+
+Parallel I/O using MPI is performed as follows
+To start, all MPI ranks read in an equal portion of 
+the data except for the last rank which reads in its 
+portion of the data plus whatever portion of the data 
+did not divide evenly among the ranks using MPI_read_at_all. 
+Next all the data is given to MPI rank 0 using the MPI_Send and 
+MPI_Recv functions. Once the LU factorization is completed, 
+Rank 0 re-disputes all the data back to the other MPI ranks using 
+MPI_Send and MPI_Recv. Once all ranks have their portion of the data 
+they perform an MPI_write_at_all call to write the data back out to a file. 
 */
+
+
+
 
 void Lu_fact_wrapper(double** matrix, double** L, double** U, double** P,
                      int dimension);
@@ -143,7 +157,6 @@ int main(int argc, char** argv) {
 
     
   } else {
-    // double* flattened_matrix = new double[num_cols*num_rows];
     double* flattened_matrix;
     matrix_cuda_alloc(&flattened_matrix, num_cols);
     int double_per_rank = num_doubles / num_ranks;
@@ -187,12 +200,6 @@ int main(int argc, char** argv) {
     
     cout << "bruh\n";
     
-    
-    // write(L,num_rows,num_cols,fh,num_ranks,doubles_per_rank,rank);
-    // write(U,num_rows,num_cols,fh,num_ranks,doubles_per_rank,rank);
-    // write(P,num_rows,num_cols,fh,num_ranks,doubles_per_rank,rank);
-    // delete [] flattened_matrix;
-    // delete [] matrix;
     matrix_cuda_free(&flattened_matrix, &L, &U, &P);
   }
   cout << "bye " << rank << "\n";
