@@ -145,10 +145,12 @@ void LU_fact(double** matrix, double** L, double** U, double** P,
   }
 }
 
+// allocate cuda managed memory for matrix
 extern void matrix_cuda_alloc(double** matrix, int dimension) {
   cudaMallocManaged(matrix, dimension * dimension * sizeof(double));
 }
 
+// free cuda managed memory
 extern void matrix_cuda_free(double** matrix, double** L, double** U,
                              double** P) {
   cudaFree(matrix);
@@ -157,6 +159,7 @@ extern void matrix_cuda_free(double** matrix, double** L, double** U,
   cudaFree(P);
 }
 
+// wrapper function to call LU_fact from mpi code
 extern void Lu_fact_wrapper(double** matrix, double** L, double** U, double** P,
                             int dimension) {
   double** L2D;
@@ -164,15 +167,18 @@ extern void Lu_fact_wrapper(double** matrix, double** L, double** U, double** P,
   double** P2D;
   double** matrix2D;
 
+  // allocate cuda managed memory for 2D arrays
   cudaMallocManaged(&matrix2D, dimension * sizeof(double*));
   cudaMallocManaged(&L2D, dimension * sizeof(double*));
   cudaMallocManaged(&U2D, dimension * sizeof(double*));
   cudaMallocManaged(&P2D, dimension * sizeof(double*));
 
+  // allocate cuda managed memory for 1D arrays
   cudaMallocManaged(L, dimension * dimension * sizeof(double));
   cudaMallocManaged(U, dimension * dimension * sizeof(double));
   cudaMallocManaged(P, dimension * dimension * sizeof(double));
 
+  // convert 1D arrays to 2D arrays
   for (int i = 0; i < dimension; i++) {
     matrix2D[i] = *matrix + (i * dimension);
     L2D[i] = *L + (i * dimension);
@@ -180,6 +186,7 @@ extern void Lu_fact_wrapper(double** matrix, double** L, double** U, double** P,
     P2D[i] = *P + (i * dimension);
   }
 
+  // initialize L and P to identity matrices and U to the matrix
   for (int r = 0; r < dimension; r++) {
     for (int c = 0; c < dimension; c++) {
       if (r == c) {
@@ -219,6 +226,8 @@ __global__ void generateSDDMatrix(double** matrix, int n) {
   }
 }
 
+// cuda kernel to generate curandState objects for index in matrix used to
+// generate random values
 __global__ void rand_init(curandState* state) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   curand_init(1337, idx, 0, &state[idx]);
@@ -233,7 +242,6 @@ __global__ void generateRandomValues(double** matrix, int n, curandState* state,
     curandState localState = state[row * n + col];
     double rand = curand_uniform_double(&localState);
     state[row * n + col] = localState;
-
 
     // use rand to generate random values
     matrix[row][col] = rand * 9 + 1;
