@@ -26,7 +26,8 @@ output matrices. It is also the starting point from the program.
 
 void LU_fact(double** matrix, double** L, double** U, double** P,
              int dimension);
-void matrix_cuda_alloc(double ** matrix,dimension);
+void matrix_cuda_alloc(double ** matrix, int dimension);
+void matrix_cuda_free(double** matrix, double** L, double** U, double** P);
 void write(double * flattened_matrix, int num_rows, int num_cols, MPI_File fh, int num_ranks, int doubles_per_rank, int rank)
 {
     int num_doubles = num_cols*num_rows;
