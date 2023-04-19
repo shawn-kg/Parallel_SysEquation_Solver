@@ -245,144 +245,146 @@ __global__ void generateRandomValues(double** matrix, int n, curandState* state,
   }
 }
 
-int main(int argc, char* argv[]) {
-  // initialize matrix A using cudaMallocManaged
-  int dimension = 1000;
-  int density = 0.1;
-  double** A;
-  double** L;
-  double** U;
-  double** P;
-  double** LU;
-  double** PA;
-  curandState* state;
-  bool* equal;
+// int main(int argc, char* argv[]) {
+//   // initialize matrix A using cudaMallocManaged
+//   int dimension = 1000;
+//   int density = 0.1;
+//   double** A;
+//   double** L;
+//   double** U;
+//   double** P;
+//   double** LU;
+//   double** PA;
+//   curandState* state;
+//   bool* equal;
 
-  unsigned long long start_time = clock_now();  // used to time functions
-  unsigned long long end_time = clock_now();
-  double cycles_per_second = 512000000;
+//   unsigned long long start_time = clock_now();  // used to time functions
+//   unsigned long long end_time = clock_now();
+//   double cycles_per_second = 512000000;
 
-  cudaMallocManaged(&A, dimension * sizeof(double*));
-  cudaMallocManaged(&L, dimension * sizeof(double*));
-  cudaMallocManaged(&U, dimension * sizeof(double*));
-  cudaMallocManaged(&P, dimension * sizeof(double*));
-  cudaMallocManaged(&LU, dimension * sizeof(double*));
-  cudaMallocManaged(&PA, dimension * sizeof(double*));
-  cudaMallocManaged(&equal, sizeof(bool));
-  cudaMallocManaged(&state, dimension * dimension * sizeof(curandState));
+//   cudaMallocManaged(&A, dimension * sizeof(double*));
+//   cudaMallocManaged(&L, dimension * sizeof(double*));
+//   cudaMallocManaged(&U, dimension * sizeof(double*));
+//   cudaMallocManaged(&P, dimension * sizeof(double*));
+//   cudaMallocManaged(&LU, dimension * sizeof(double*));
+//   cudaMallocManaged(&PA, dimension * sizeof(double*));
+//   cudaMallocManaged(&equal, sizeof(bool));
+//   cudaMallocManaged(&state, dimension * dimension * sizeof(curandState));
 
-  for (int r = 0; r < dimension; r++) {
-    cudaMallocManaged(&A[r], dimension * sizeof(double));
-    cudaMallocManaged(&L[r], dimension * sizeof(double));
-    cudaMallocManaged(&U[r], dimension * sizeof(double));
-    cudaMallocManaged(&P[r], dimension * sizeof(double));
-    cudaMallocManaged(&LU[r], dimension * sizeof(double));
-    cudaMallocManaged(&PA[r], dimension * sizeof(double));
-  }
+//   for (int r = 0; r < dimension; r++) {
+//     cudaMallocManaged(&A[r], dimension * sizeof(double));
+//     cudaMallocManaged(&L[r], dimension * sizeof(double));
+//     cudaMallocManaged(&U[r], dimension * sizeof(double));
+//     cudaMallocManaged(&P[r], dimension * sizeof(double));
+//     cudaMallocManaged(&LU[r], dimension * sizeof(double));
+//     cudaMallocManaged(&PA[r], dimension * sizeof(double));
+//   }
 
-  // initialize curand state
-  rand_init<<<2048, 2048>>>(state);
+//   // initialize curand state
+//   rand_init<<<2048, 2048>>>(state);
 
-  // int block_size = 2048;
+//   // int block_size = 2048;
 
-  // dim3 grid_size((dimension + block_size - 1) / block_size,
-  //                (dimension + block_size - 1) / block_size);
-  // dim3 blocksize(block_size, block_size);
+//   // dim3 grid_size((dimension + block_size - 1) / block_size,
+//   //                (dimension + block_size - 1) / block_size);
+//   // dim3 blocksize(block_size, block_size);
 
-  // initialize A to be a random matrix
-  generateRandomValues<<<2048, 2048>>>(A, dimension, state, density);
+//   // initialize A to be a random matrix
+//   generateRandomValues<<<2048, 2048>>>(A, dimension, state, density);
 
-  // generate a strictly diagonally dominant matrix
-  generateSDDMatrix<<<2048, 2048>>>(A, dimension);
-  cudaDeviceSynchronize();
+//   // generate a strictly diagonally dominant matrix
+//   generateSDDMatrix<<<2048, 2048>>>(A, dimension);
+//   cudaDeviceSynchronize();
 
-  // // print A
-  // printf("A = \n");
-  // print_matrix(A, dimension);
+//   // // print A
+//   // printf("A = \n");
+//   // print_matrix(A, dimension);
 
-  // LU factorization
+//   // LU factorization
 
-  // make sure that P,L = I and U = matrix
-  for (int r = 0; r < dimension; r++) {
-    for (int c = 0; c < dimension; c++) {
-      if (r == c) {
-        L[r][c] = 1;
-        P[r][c] = 1;
-      } else {
-        L[r][c] = 0;
-        P[r][c] = 0;
-      }
-      U[r][c] = A[r][c];
-    }
-  }
+//   // make sure that P,L = I and U = matrix
+//   for (int r = 0; r < dimension; r++) {
+//     for (int c = 0; c < dimension; c++) {
+//       if (r == c) {
+//         L[r][c] = 1;
+//         P[r][c] = 1;
+//       } else {
+//         L[r][c] = 0;
+//         P[r][c] = 0;
+//       }
+//       U[r][c] = A[r][c];
+//     }
+//   }
 
-  start_time = clock_now();
-  LU_fact(A, L, U, P, dimension);
-  end_time = clock_now();
-  double time_elapsed = (double)((end_time - start_time) / cycles_per_second);
+//   start_time = clock_now();
+//   LU_fact(A, L, U, P, dimension);
+//   end_time = clock_now();
+//   double time_elapsed = (double)((end_time - start_time) /
+//   cycles_per_second);
 
-  // // print results
-  // printf("L = \n");
-  // print_matrix(L, dimension);
+//   // // print results
+//   // printf("L = \n");
+//   // print_matrix(L, dimension);
 
-  // printf("\nU = \n");
-  // print_matrix(U, dimension);
+//   // printf("\nU = \n");
+//   // print_matrix(U, dimension);
 
-  // compute LU and PA
-  matrix_mult<<<2048, 2048>>>(L, U, LU, dimension);
-  // cudaDeviceSynchronize();
-  matrix_mult<<<2048, 2048>>>(P, A, PA, dimension);
-  cudaDeviceSynchronize();
+//   // compute LU and PA
+//   matrix_mult<<<2048, 2048>>>(L, U, LU, dimension);
+//   // cudaDeviceSynchronize();
+//   matrix_mult<<<2048, 2048>>>(P, A, PA, dimension);
+//   cudaDeviceSynchronize();
 
-  // check_matrix_equivalence<<<dimension, dimension>>>(U, A, equal, dimension);
-  // cudaDeviceSynchronize();
+//   // check_matrix_equivalence<<<dimension, dimension>>>(U, A, equal,
+//   dimension);
+//   // cudaDeviceSynchronize();
 
-  // // print results
-  // if (*equal) {
-  //   printf("\nU = A\n");
-  // } else {
-  //   printf("\nU != A\n");
-  // }
+//   // // print results
+//   // if (*equal) {
+//   //   printf("\nU = A\n");
+//   // } else {
+//   //   printf("\nU != A\n");
+//   // }
 
-  // check if LU = PA using check_matrix_equivalence
-  check_matrix_equivalence<<<1024, 1024>>>(LU, PA, equal, dimension);
-  cudaDeviceSynchronize();
+//   // check if LU = PA using check_matrix_equivalence
+//   check_matrix_equivalence<<<1024, 1024>>>(LU, PA, equal, dimension);
+//   cudaDeviceSynchronize();
 
-  // print number of dimensions
-  printf("Dimension: %d\n", dimension);
+//   // print number of dimensions
+//   printf("Dimension: %d\n", dimension);
 
-  // print results
-  if (*equal) {
-    printf("\nLU = PA\n");
-  } else {
-    printf("\nLU != PA\n");
-  }
+//   // print results
+//   if (*equal) {
+//     printf("\nLU = PA\n");
+//   } else {
+//     printf("\nLU != PA\n");
+//   }
 
-  printf("Time elapsed: %f seconds\n", time_elapsed);
+//   printf("Time elapsed: %f seconds\n", time_elapsed);
 
-  // printf("LU = \n");
-  // print_matrix(LU, dimension);
-  // printf("\nPA = \n");
-  // print_matrix(PA, dimension);
+//   // printf("LU = \n");
+//   // print_matrix(LU, dimension);
+//   // printf("\nPA = \n");
+//   // print_matrix(PA, dimension);
 
-  // free memory
-  for (int r = 0; r < dimension; r++) {
-    cudaFree(A[r]);
-    cudaFree(L[r]);
-    cudaFree(U[r]);
-    cudaFree(P[r]);
-    cudaFree(LU[r]);
-    cudaFree(PA[r]);
-  }
+//   // free memory
+//   for (int r = 0; r < dimension; r++) {
+//     cudaFree(A[r]);
+//     cudaFree(L[r]);
+//     cudaFree(U[r]);
+//     cudaFree(P[r]);
+//     cudaFree(LU[r]);
+//     cudaFree(PA[r]);
+//   }
 
-  cudaFree(A);
-  cudaFree(L);
-  cudaFree(U);
-  cudaFree(P);
-  cudaFree(LU);
-  cudaFree(PA);
-  cudaFree(equal);
-  cudaFree(state);
+//   cudaFree(A);
+//   cudaFree(L);
+//   cudaFree(U);
+//   cudaFree(P);
+//   cudaFree(LU);
+//   cudaFree(PA);
+//   cudaFree(equal);
+//   cudaFree(state);
 
-  return 0;
-}
+//   return 0;
+// }
