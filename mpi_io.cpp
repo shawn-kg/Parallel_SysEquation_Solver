@@ -145,9 +145,9 @@ int main(int argc,char** argv)
         for(int i = 0; i < num_rows; ++i)
           matrix[i] =  flattened_matrix+(i*num_cols);
 
-        double** L;
-        double** U;
-        double** P;
+        double* L;
+        double* U;
+        double* P;
         // LU_fact(matrix,L,U,P,num_cols);
         cout << "bruh\n";
         write(flattened_matrix,num_rows,num_cols,fh,num_ranks,doubles_per_rank,rank);
