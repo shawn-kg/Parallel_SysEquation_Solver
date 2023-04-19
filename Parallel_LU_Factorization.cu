@@ -120,6 +120,8 @@ void print_matrix(double** matrix, int dimension) {
   }
 }
 
+
+
 void LU_fact(double** matrix, double** L, double** U, double** P,
              int dimension) {
   // begin factorization with partial pivoting
@@ -143,6 +145,63 @@ void LU_fact(double** matrix, double** L, double** U, double** P,
     row_ops_kernel<<<2048, 2048>>>(c, dimension, L, U);
     cudaDeviceSynchronize();
   }
+}
+
+extern void matrix_cuda_alloc(double ** matrix,dimension){
+  cudaMallocManaged(matrix, dimension * dimension * sizeof(double));
+}
+
+extern void matrix_cuda_free(double** matrix, double **L, double **U, double **P){
+  cudaFree(matrix);
+  cudaFree(L);
+  cudaFree(U);
+  cudaFree(P);
+}
+
+extern void Lu_fact_wrapper(double** matrix, double** L, double** U, double** P,
+  int dimension)
+{
+  double** L2D;
+  double** U2D;
+  double** P2D;
+  double** matrix2D;
+
+  cudaMallocManaged(&matrix2D, dimension * sizeof(double*));
+  cudaMallocManaged(&L2D, dimension * sizeof(double*));
+  cudaMallocManaged(&U2D, dimension * sizeof(double*));
+  cudaMallocManaged(&P2D, dimension * sizeof(double*));
+
+  cudaMallocManaged(L, dimension * dimension * sizeof(double));
+  cudaMallocManaged(U, dimension * dimension * sizeof(double));
+  cudaMallocManaged(P, dimension * dimension * sizeof(double));
+
+  for (int i = 0; i < dimension; i++) {
+    matrix2d[i] = matrix +(i*dimension);
+    L2D[i] = L +(i*dimension)
+    U2D[i] = U +(i*dimension);
+    P2D[i] = P +(i*dimension);
+  }
+
+  for (int r = 0; r < dimension; r++) {
+    for (int c = 0; c < dimension; c++) {
+      if (r == c) {
+        L2D[r][c] = 1;
+        P2D[r][c] = 1;
+      } else {
+        L2D[r][c] = 0;
+        P2D[r][c] = 0;
+      }
+      U2D[r][c] = matrix2D[r][c];
+    }
+  }
+
+  LU_fact(matrix2D, L2D, U2D, P2D, dimension);
+
+  cudaFree(matrix2D);
+  cudaFree(L2D);
+  cudaFree(U2D);
+  cudaFree(P2D);
+
 }
 
 // cuda kernel to generate a strictly diagonally dominant matrix
