@@ -1,0 +1,16 @@
+Dimension: 20000
+
+LU = PA
+Time elapsed: 2.941862 seconds
+Dimension: 20000
+
+LU = PA
+Time elapsed: 2.960671 seconds
+Dimension: 20000
+
+LU = PA
+Time elapsed: 2.943280 seconds
+Dimension: 20000
+
+LU = PA
+Time elapsed: 2.965765 seconds

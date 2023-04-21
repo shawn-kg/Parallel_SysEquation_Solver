@@ -1,0 +1,120 @@
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.008919 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.008913 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.008964 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.008958 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.008997 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.008945 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.009028 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.008994 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.008934 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.008985 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.008927 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.008981 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.009054 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.009031 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.008980 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.008945 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.008924 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.008923 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.008910 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.008937 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.008928 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.008930 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.009083 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.009023 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.009050 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.008930 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.008964 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.008986 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.008925 seconds
+Dimension: 1000
+
+LU = PA
+Time elapsed: 0.009025 seconds
