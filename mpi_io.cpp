@@ -44,7 +44,7 @@ void Lu_fact_wrapper(double** matrix, double** L, double** U, double** P,
 void matrix_cuda_alloc(double** matrix, int dimension);
 void matrix_cuda_free(double** matrix, double** L, double** U, double** P);
 void write(double* flattened_matrix, int num_rows, int num_cols, MPI_File fh,
-           int num_ranks, int doubles_per_rank, int rank) {
+           int num_ranks, unsigned long long doubles_per_rank, unsigned long long rank) {
   int num_doubles = num_cols * num_rows;
   if (rank == 0) {
     for (int i = 1; i < num_ranks; ++i) {
@@ -97,9 +97,9 @@ int main(int argc, char** argv) {
 
   if (rank == num_ranks - 1) {
     int num_doubles = num_rows * num_cols;
-    int double_per_rank = num_doubles / num_ranks;
+    unsigned long long double_per_rank = num_doubles / num_ranks;
     double* buf = new double[double_per_rank + (num_doubles % double_per_rank)];
-    MPI_File_read_at_all(fh, rank * double_per_rank * sizeof(double), buf,
+    MPI_File_read_at_all(fh, (unsigned long long)rank * double_per_rank * sizeof(double), buf,
                          double_per_rank + (num_doubles % double_per_rank),
                          MPI_DOUBLE, &status);
     MPI_Send(buf, double_per_rank + (num_doubles % double_per_rank), MPI_DOUBLE,
@@ -108,42 +108,42 @@ int main(int argc, char** argv) {
 
     MPI_File_close(&fh);
     MPI_File_open(MPI_COMM_WORLD, "L", MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL,&fh);
-    write(nullptr, num_rows, num_cols, fh, num_ranks, doubles_per_rank,rank);
+    write(nullptr, num_rows, num_cols, fh, num_ranks, doubles_per_rank,(unsigned long long)rank);
     
     MPI_File_close(&fh);
     MPI_File_open(MPI_COMM_WORLD, "U", MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL,&fh);
-    write(nullptr, num_rows, num_cols, fh, num_ranks, doubles_per_rank,rank);
+    write(nullptr, num_rows, num_cols, fh, num_ranks, doubles_per_rank,(unsigned long long)rank);
 
     MPI_File_close(&fh);
     MPI_File_open(MPI_COMM_WORLD, "P", MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL,&fh);
-    write(nullptr, num_rows, num_cols, fh, num_ranks, doubles_per_rank,rank);
+    write(nullptr, num_rows, num_cols, fh, num_ranks, doubles_per_rank,(unsigned long long)rank);
 
   } else if (rank != 0) {
     int num_doubles = num_rows * num_cols;
-    int double_per_rank = num_doubles / num_ranks;
+    unsigned long long double_per_rank = num_doubles / num_ranks;
     double* buf = new double[double_per_rank];
-    MPI_File_read_at_all(fh, rank * double_per_rank * sizeof(double), buf,
+    MPI_File_read_at_all(fh, (unsigned long long)rank * double_per_rank * sizeof(double), buf,
                          double_per_rank, MPI_DOUBLE, &status);
     MPI_Send(buf, double_per_rank, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
     delete[] buf;
     
     MPI_File_close(&fh);
     MPI_File_open(MPI_COMM_WORLD, "L", MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL,&fh);
-    write(nullptr, num_rows, num_cols, fh, num_ranks, doubles_per_rank,rank);
+    write(nullptr, num_rows, num_cols, fh, num_ranks, doubles_per_rank,(unsigned long long)rank);
     
     MPI_File_close(&fh);
     MPI_File_open(MPI_COMM_WORLD, "U", MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL,&fh);
-    write(nullptr, num_rows, num_cols, fh, num_ranks, doubles_per_rank,rank);
+    write(nullptr, num_rows, num_cols, fh, num_ranks, doubles_per_rank,(unsigned long long)rank);
 
     MPI_File_close(&fh);
     MPI_File_open(MPI_COMM_WORLD, "P", MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL,&fh);
-    write(nullptr, num_rows, num_cols, fh, num_ranks, doubles_per_rank,rank);
+    write(nullptr, num_rows, num_cols, fh, num_ranks, doubles_per_rank,(unsigned long long)rank);
     
   } else {
     double* flattened_matrix;
     matrix_cuda_alloc(&flattened_matrix, num_cols);
-    int double_per_rank = num_doubles / num_ranks;
-    MPI_File_read_at_all(fh, rank * double_per_rank * sizeof(double),
+    unsigned long long double_per_rank = num_doubles / num_ranks;
+    MPI_File_read_at_all(fh, (unsigned long long)rank * double_per_rank * sizeof(double),
                          flattened_matrix, double_per_rank, MPI_DOUBLE,
                          &status);
 
@@ -166,15 +166,15 @@ int main(int argc, char** argv) {
     
     MPI_File_close(&fh);
     MPI_File_open(MPI_COMM_WORLD, "L", MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL,&fh);
-    write(L, num_rows, num_cols, fh, num_ranks, doubles_per_rank,rank);
+    write(L, num_rows, num_cols, fh, num_ranks, doubles_per_rank,(unsigned long long)rank);
     
     MPI_File_close(&fh);
     MPI_File_open(MPI_COMM_WORLD, "U", MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL,&fh);
-    write(U, num_rows, num_cols, fh, num_ranks, doubles_per_rank,rank);
+    write(U, num_rows, num_cols, fh, num_ranks, doubles_per_rank,(unsigned long long)rank);
 
     MPI_File_close(&fh);
     MPI_File_open(MPI_COMM_WORLD, "P", MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL,&fh);
-    write(P, num_rows, num_cols, fh, num_ranks, doubles_per_rank,rank);
+    write(P, num_rows, num_cols, fh, num_ranks, doubles_per_rank,(unsigned long long)rank);
     
     
     matrix_cuda_free(&flattened_matrix, &L, &U, &P);
