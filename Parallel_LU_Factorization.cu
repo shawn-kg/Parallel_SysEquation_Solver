@@ -145,7 +145,7 @@ void LU_fact(double** matrix, double** L, double** U, double** P,
   }
 }
 
-allocate cuda managed memory for matrix
+// allocate cuda managed memory for matrix
 extern void matrix_cuda_alloc(double** matrix, int dimension) {
   cudaMallocManaged(matrix, dimension * dimension * sizeof(double));
 }
